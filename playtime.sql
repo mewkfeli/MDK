@@ -62,8 +62,9 @@ DROP TABLE IF EXISTS `event_participant`;
 CREATE TABLE `event_participant` (
   `id_event` int NOT NULL,
   `id_user` int NOT NULL,
-  `status` enum('Записан','Пришел','Отменил') NOT NULL DEFAULT 'Записан',
-  `joined_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `status` enum('На рассмотрении','Записан','Пришёл','Отменён') NOT NULL DEFAULT 'На рассмотрении',
+  `send_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `comment` text,
   PRIMARY KEY (`id_event`,`id_user`),
   KEY `id_user_fk_idx` (`id_user`),
   CONSTRAINT `id_events_fk` FOREIGN KEY (`id_event`) REFERENCES `event` (`id_event`),
@@ -243,4 +244,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-09-28 21:50:20
+-- Dump completed on 2025-09-29 10:07:42
