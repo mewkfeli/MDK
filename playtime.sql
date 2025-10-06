@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 8.0.42, for Win64 (x86_64)
 --
--- Host: localhost    Database: playtime
+-- Host: localhost    Database: playtime_db
 -- ------------------------------------------------------
 -- Server version	8.0.42
 
@@ -16,223 +16,186 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `event`
+-- Table structure for table `cities`
 --
 
-DROP TABLE IF EXISTS `event`;
+DROP TABLE IF EXISTS `cities`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `event` (
-  `id_event` int NOT NULL AUTO_INCREMENT,
-  `id_user` int NOT NULL COMMENT 'айди организатора',
-  `id_game` int NOT NULL,
-  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'наименование события',
-  `date` datetime NOT NULL COMMENT 'дата и время',
-  `location` varchar(500) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'место проведения',
-  `duration` int NOT NULL COMMENT 'продолжительность (в минутах)',
-  `max_player` int NOT NULL COMMENT 'макс. кол-во игроков',
-  `description` text COLLATE utf8mb4_unicode_ci COMMENT 'краткое описание',
-  `status` enum('Запланировано','Окончено','Отменено') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Запланировано',
-  PRIMARY KEY (`id_event`),
-  KEY `idx_organizer` (`id_user`),
-  KEY `idx_event_date` (`date`),
-  KEY `idx_event_location` (`location`(100)),
-  KEY `id_game_fk_idx` (`id_game`),
-  CONSTRAINT `event_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`) ON DELETE CASCADE,
-  CONSTRAINT `id_game_fk` FOREIGN KEY (`id_game`) REFERENCES `game` (`id_game`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `cities` (
+  `city_id` int NOT NULL AUTO_INCREMENT,
+  `city_name` varchar(100) NOT NULL,
+  PRIMARY KEY (`city_id`),
+  UNIQUE KEY `city_name` (`city_name`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `event`
+-- Dumping data for table `cities`
 --
 
-LOCK TABLES `event` WRITE;
-/*!40000 ALTER TABLE `event` DISABLE KEYS */;
-/*!40000 ALTER TABLE `event` ENABLE KEYS */;
+LOCK TABLES `cities` WRITE;
+/*!40000 ALTER TABLE `cities` DISABLE KEYS */;
+INSERT INTO `cities` VALUES (4,'Екатеринбург'),(1,'Москва'),(3,'Новосибирск'),(2,'Санкт-Петербург');
+/*!40000 ALTER TABLE `cities` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Table structure for table `event_participant`
+-- Table structure for table `event_participants`
 --
 
-DROP TABLE IF EXISTS `event_participant`;
+DROP TABLE IF EXISTS `event_participants`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `event_participant` (
-  `id_event` int NOT NULL,
-  `id_user` int NOT NULL,
-  `status` enum('На рассмотрении','Записан','Пришёл','Отменён') NOT NULL DEFAULT 'На рассмотрении',
-  `send_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `comment` text,
-  PRIMARY KEY (`id_event`,`id_user`),
-  KEY `id_user_fk_idx` (`id_user`),
-  CONSTRAINT `id_events_fk` FOREIGN KEY (`id_event`) REFERENCES `event` (`id_event`),
-  CONSTRAINT `id_user_fk` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`)
+CREATE TABLE `event_participants` (
+  `event_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `joined_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`event_id`,`user_id`),
+  KEY `idx_event_participants_user` (`user_id`),
+  KEY `idx_event_participants_event` (`event_id`),
+  CONSTRAINT `event_participants_ibfk_1` FOREIGN KEY (`event_id`) REFERENCES `events` (`event_id`) ON DELETE CASCADE,
+  CONSTRAINT `event_participants_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `event_participant`
+-- Dumping data for table `event_participants`
 --
 
-LOCK TABLES `event_participant` WRITE;
-/*!40000 ALTER TABLE `event_participant` DISABLE KEYS */;
-/*!40000 ALTER TABLE `event_participant` ENABLE KEYS */;
+LOCK TABLES `event_participants` WRITE;
+/*!40000 ALTER TABLE `event_participants` DISABLE KEYS */;
+INSERT INTO `event_participants` VALUES (1,2,'2025-10-06 09:28:18'),(2,1,'2025-10-06 09:28:18');
+/*!40000 ALTER TABLE `event_participants` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Table structure for table `game`
+-- Table structure for table `events`
 --
 
-DROP TABLE IF EXISTS `game`;
+DROP TABLE IF EXISTS `events`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `game` (
-  `id_game` int NOT NULL AUTO_INCREMENT,
-  `id_genre` int NOT NULL,
-  `name_game` varchar(300) NOT NULL,
-  `min_count_player` int NOT NULL,
-  `time_party` int NOT NULL,
-  `min_age_game` int NOT NULL,
-  `description_game` text NOT NULL,
-  PRIMARY KEY (`id_game`),
-  KEY `id_genres_fk_idx` (`id_genre`),
-  CONSTRAINT `id_genres_fk` FOREIGN KEY (`id_genre`) REFERENCES `genre` (`id_genre`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE `events` (
+  `event_id` int NOT NULL AUTO_INCREMENT,
+  `organizer_id` int NOT NULL,
+  `game_id` int NOT NULL,
+  `event_name` varchar(200) NOT NULL,
+  `event_datetime` timestamp NOT NULL,
+  `location` varchar(500) NOT NULL,
+  `max_participants` int NOT NULL,
+  `description` text,
+  `status` varchar(20) DEFAULT 'active',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`event_id`),
+  KEY `organizer_id` (`organizer_id`),
+  KEY `game_id` (`game_id`),
+  KEY `idx_events_datetime` (`event_datetime`),
+  KEY `idx_events_status` (`status`),
+  CONSTRAINT `events_ibfk_1` FOREIGN KEY (`organizer_id`) REFERENCES `users` (`user_id`),
+  CONSTRAINT `events_ibfk_2` FOREIGN KEY (`game_id`) REFERENCES `games` (`game_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `game`
+-- Dumping data for table `events`
 --
 
-LOCK TABLES `game` WRITE;
-/*!40000 ALTER TABLE `game` DISABLE KEYS */;
-/*!40000 ALTER TABLE `game` ENABLE KEYS */;
+LOCK TABLES `events` WRITE;
+/*!40000 ALTER TABLE `events` DISABLE KEYS */;
+INSERT INTO `events` VALUES (1,1,1,'Вечер Каркассона в центре','2024-12-15 14:00:00','Москва, ул. Тверская, д. 10, кафе \"Игротека\"',5,'Ищем компанию для игры в Каркассон. Есть расширения!','active','2025-10-06 09:28:16'),(2,2,3,'Турнир по Мафии','2024-12-16 15:00:00','Москва, Ленинский пр-т, д. 25, коворкинг \"Сфера\"',10,'Большая игра в Мафию с опытным ведущим. Приходите!','active','2025-10-06 09:28:16');
+/*!40000 ALTER TABLE `events` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Table structure for table `genre`
+-- Table structure for table `games`
 --
 
-DROP TABLE IF EXISTS `genre`;
+DROP TABLE IF EXISTS `games`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `genre` (
-  `id_genre` int NOT NULL AUTO_INCREMENT,
-  `name_genre` varchar(300) NOT NULL,
-  PRIMARY KEY (`id_genre`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE `games` (
+  `game_id` int NOT NULL AUTO_INCREMENT,
+  `genre_id` int DEFAULT NULL,
+  `game_name` varchar(200) NOT NULL,
+  `min_players` int NOT NULL,
+  `max_players` int NOT NULL,
+  `description` text,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`game_id`),
+  KEY `idx_games_genre` (`genre_id`),
+  CONSTRAINT `games_ibfk_1` FOREIGN KEY (`genre_id`) REFERENCES `genres` (`genre_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `genre`
+-- Dumping data for table `games`
 --
 
-LOCK TABLES `genre` WRITE;
-/*!40000 ALTER TABLE `genre` DISABLE KEYS */;
-/*!40000 ALTER TABLE `genre` ENABLE KEYS */;
+LOCK TABLES `games` WRITE;
+/*!40000 ALTER TABLE `games` DISABLE KEYS */;
+INSERT INTO `games` VALUES (1,1,'Каркассон',2,5,'Классическая игра по строительству замков и дорог','2025-10-06 09:28:12'),(2,2,'Уно',2,10,'Весёлая карточная игра для компании','2025-10-06 09:28:12'),(3,3,'Мафия',6,12,'Детективная игра с секретными ролями','2025-10-06 09:28:12'),(4,4,'Пандемия',2,4,'Кооперативная игра по спасению мира от болезней','2025-10-06 09:28:12');
+/*!40000 ALTER TABLE `games` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Table structure for table `review`
+-- Table structure for table `genres`
 --
 
-DROP TABLE IF EXISTS `review`;
+DROP TABLE IF EXISTS `genres`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `review` (
-  `id_review` int NOT NULL AUTO_INCREMENT,
-  `id_event` int NOT NULL,
-  `id_user_send` int NOT NULL COMMENT 'Идентификатор пользователя который ОТПРАВИЛ отзыв',
-  `id_user_accept` int NOT NULL COMMENT 'Идентификатор пользователя НА которого написан отзыв',
-  `rating` int NOT NULL,
-  `comment` text,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id_review`),
-  UNIQUE KEY `unique_review` (`id_event`,`id_user_send`,`id_user_accept`),
-  KEY `id_event_fk_idx` (`id_event`),
-  KEY `id_user_send_fk_idx` (`id_user_send`),
-  KEY `id_user_accept_idx` (`id_user_accept`),
-  CONSTRAINT `id_event_fk` FOREIGN KEY (`id_event`) REFERENCES `event` (`id_event`),
-  CONSTRAINT `id_user_accept` FOREIGN KEY (`id_user_accept`) REFERENCES `user` (`id_user`),
-  CONSTRAINT `id_user_send_fk` FOREIGN KEY (`id_user_send`) REFERENCES `user` (`id_user`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE `genres` (
+  `genre_id` int NOT NULL AUTO_INCREMENT,
+  `genre_name` varchar(50) NOT NULL,
+  PRIMARY KEY (`genre_id`),
+  UNIQUE KEY `genre_name` (`genre_name`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `review`
+-- Dumping data for table `genres`
 --
 
-LOCK TABLES `review` WRITE;
-/*!40000 ALTER TABLE `review` DISABLE KEYS */;
-/*!40000 ALTER TABLE `review` ENABLE KEYS */;
+LOCK TABLES `genres` WRITE;
+/*!40000 ALTER TABLE `genres` DISABLE KEYS */;
+INSERT INTO `genres` VALUES (3,'Детективные'),(2,'Карточные'),(4,'Кооперативные'),(6,'Приключенческие'),(1,'Стратегия'),(5,'Экономические');
+/*!40000 ALTER TABLE `genres` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Table structure for table `type_city`
+-- Table structure for table `users`
 --
 
-DROP TABLE IF EXISTS `type_city`;
+DROP TABLE IF EXISTS `users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `type_city` (
-  `id_city` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'наименование города',
-  PRIMARY KEY (`id_city`),
-  UNIQUE KEY `unique_city_name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `type_city`
---
-
-LOCK TABLES `type_city` WRITE;
-/*!40000 ALTER TABLE `type_city` DISABLE KEYS */;
-INSERT INTO `type_city` VALUES (4,'Екатеринбург'),(5,'Казань'),(1,'Москва'),(3,'Новосибирск'),(2,'Санкт-Петербург');
-/*!40000 ALTER TABLE `type_city` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `user`
---
-
-DROP TABLE IF EXISTS `user`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `user` (
-  `id_user` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `surname` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `patronymic` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'почта',
-  `password_hash` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'пароль (хэш)',
-  `type_city` int NOT NULL COMMENT 'город',
-  `age` int DEFAULT NULL COMMENT 'возраст',
-  `gender` enum('Мужской','Женский') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `rating` decimal(4,2) DEFAULT '0.00' COMMENT 'рейтинг пользователя',
-  `description` text COLLATE utf8mb4_unicode_ci COMMENT 'краткое описание',
-  `discord_username` varchar(300) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `telegram_username` varchar(300) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `role` enum('Пользователь','Администратор') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id_user`),
+CREATE TABLE `users` (
+  `user_id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `city_id` int DEFAULT NULL,
+  `birth_date` date DEFAULT NULL,
+  `description` text,
+  `contact_info` varchar(100) DEFAULT NULL,
+  `role` enum('Пользователь','Администратор') DEFAULT 'Пользователь',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`),
   UNIQUE KEY `email` (`email`),
-  KEY `idx_email` (`email`),
-  KEY `idx_city` (`type_city`),
-  KEY `idx_rating` (`rating`),
-  CONSTRAINT `user_ibfk_1` FOREIGN KEY (`type_city`) REFERENCES `type_city` (`id_city`) ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  KEY `idx_users_city` (`city_id`),
+  CONSTRAINT `users_ibfk_1` FOREIGN KEY (`city_id`) REFERENCES `cities` (`city_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Таблица зарегистрированных пользователей системы';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `user`
+-- Dumping data for table `users`
 --
 
-LOCK TABLES `user` WRITE;
-/*!40000 ALTER TABLE `user` DISABLE KEYS */;
-/*!40000 ALTER TABLE `user` ENABLE KEYS */;
+LOCK TABLES `users` WRITE;
+/*!40000 ALTER TABLE `users` DISABLE KEYS */;
+INSERT INTO `users` VALUES (1,'Алексей Иванов','alex@mail.com','hashed_password_1',1,'1995-03-15',NULL,'@alexey','Пользователь','2025-10-06 09:28:05'),(2,'Мария Петрова','maria@mail.com','hashed_password_2',1,'1998-07-22',NULL,'@maria','Пользователь','2025-10-06 09:28:05'),(3,'Администратор','admin@playtime.ru','hashed_admin_password',1,'1990-01-01',NULL,'@admin','Администратор','2025-10-06 09:28:05');
+/*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -244,4 +207,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-09-29 10:07:42
+-- Dump completed on 2025-10-06 14:30:26
